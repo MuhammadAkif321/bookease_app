@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1188483737",
+    "project_id": "bookease-3ba2c",
+    "storage_bucket": "bookease-3ba2c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1188483737:android:62e874624d522bfe295e08",
+        "android_client_info": {
+          "package_name": "com.akif.bookease"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxqz5E_HrZ5orwDLFPGRWKP_lWdpbqULY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1188483737:android:1e7b606c63d395c9295e08",
+        "android_client_info": {
+          "package_name": "com.akif.bookease.bookease"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxqz5E_HrZ5orwDLFPGRWKP_lWdpbqULY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
