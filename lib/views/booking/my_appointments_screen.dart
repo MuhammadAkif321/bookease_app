@@ -62,14 +62,19 @@ class _MyAppointmentsScreenState
         ),
       )
           : PreferredSize(
-        preferredSize: const Size.fromHeight(100),
+        preferredSize: const Size.fromHeight(90),
         child: Container(
           color: const Color(0xFF6C63FF),
           child: SafeArea(
+            bottom: false,
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 const Padding(
-                  padding: EdgeInsets.all(16),
+                  padding: EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 16,
+                  ),
                   child: Text(
                     'My Appointments',
                     style: TextStyle(

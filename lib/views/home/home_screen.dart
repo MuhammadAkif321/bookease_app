@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../booking/booking_screen.dart';
 import '../booking/my_appointments_screen.dart';
 import 'profile_screen.dart';
+import 'saved_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -127,6 +128,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ? const MyAppointmentsScreen(
         showAppBar: false,
       )
+          : _currentIndex == 2
+          ? const SavedScreen()
           : _currentIndex == 3
           ? const ProfileScreen()
           : const Center(

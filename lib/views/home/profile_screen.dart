@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../auth/login_screen.dart';
 import '../booking/my_appointments_screen.dart';
+import '../payment/payment_history_screen.dart';
 import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -151,10 +152,7 @@ class ProfileScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              icon: const Icon(
-                Icons.edit_outlined,
-                size: 16,
-              ),
+              icon: const Icon(Icons.edit_outlined, size: 16),
               label: const Text('Edit Profile'),
             ),
           ],
@@ -322,21 +320,201 @@ class ProfileScreen extends StatelessWidget {
           ),
         );
         break;
-      case 'Logout':
-        _showLogoutDialog(context);
+      case 'Payment History':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+            const PaymentHistoryScreen(),
+          ),
+        );
         break;
-      default:
+      case 'Notifications':
+        _showNotificationsDialog(context);
+        break;
+      case 'Saved Services':
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('$title coming soon!'),
-            backgroundColor: const Color(0xFF6C63FF),
+            content: const Text(
+              'Go to Saved tab below! ❤️',
+            ),
+            backgroundColor: const Color(0xFFFF6584),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
           ),
         );
+        break;
+      case 'Help & Support':
+        _showHelpDialog(context);
+        break;
+      case 'Privacy Policy':
+        _showPrivacyDialog(context);
+        break;
+      case 'Logout':
+        _showLogoutDialog(context);
+        break;
     }
+  }
+
+  void _showNotificationsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: const Text(
+          '🔔 Notifications',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildNotificationTile(
+              'Booking Reminders',
+              true,
+            ),
+            _buildNotificationTile(
+              'Payment Alerts',
+              true,
+            ),
+            _buildNotificationTile(
+              'Promotions & Offers',
+              false,
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6C63FF),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              'Save',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNotificationTile(
+      String title,
+      bool value,
+      ) {
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return SwitchListTile(
+          title: Text(title),
+          value: value,
+          activeColor: const Color(0xFF6C63FF),
+          onChanged: (val) {
+            setState(() => value = val);
+          },
+        );
+      },
+    );
+  }
+
+  void _showHelpDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: const Text(
+          '❓ Help & Support',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Contact us:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Text('📧 support@bookease.com'),
+            SizedBox(height: 4),
+            Text('📱 0300-1234567'),
+            SizedBox(height: 16),
+            Text(
+              'Common Questions:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Text('• How to book an appointment?'),
+            Text('• How to cancel booking?'),
+            Text('• How to get refund?'),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6C63FF),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              'Close',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPrivacyDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: const Text(
+          '🔒 Privacy Policy',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: const SingleChildScrollView(
+          child: Text(
+            'BookEase respects your privacy.\n\n'
+                '• We collect only necessary data\n'
+                '• Your data is never sold\n'
+                '• Payments are 256-bit encrypted\n'
+                '• You can delete your account anytime\n'
+                '• We comply with data protection laws\n\n'
+                'For full policy visit bookease.com/privacy',
+          ),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6C63FF),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              'Close',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showLogoutDialog(BuildContext context) {
