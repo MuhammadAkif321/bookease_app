@@ -75,6 +75,7 @@ class _BookingScreenState extends State<BookingScreen> {
         ),
       ),
       body: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 30),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -402,7 +403,7 @@ class _BookingScreenState extends State<BookingScreen> {
       delay: const Duration(milliseconds: 400),
       duration: const Duration(milliseconds: 600),
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 40),
         child: Column(
           children: [
             if (_selectedDay != null &&

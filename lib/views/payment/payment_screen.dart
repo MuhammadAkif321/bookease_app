@@ -20,7 +20,8 @@ class PaymentScreen extends StatefulWidget {
   });
 
   @override
-  State<PaymentScreen> createState() => _PaymentScreenState();
+  State<PaymentScreen> createState() =>
+      _PaymentScreenState();
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
@@ -54,27 +55,30 @@ class _PaymentScreenState extends State<PaymentScreen> {
     },
   ];
 
-  bool _validatePayment() {
-    if (_selectedPayment == 0) {
-      // Card validation
-      return true; // Stripe handles this
-    } else if (_selectedPayment == 1 ||
-        _selectedPayment == 2) {
-      return true; // Mobile validation done in field
-    }
-    return true; // Cash on visit
+  final _cardNumberController = TextEditingController();
+  final _expiryController = TextEditingController();
+  final _cvvController = TextEditingController();
+  final _cardNameController = TextEditingController();
+  final _mobileController = TextEditingController();
+
+  @override
+  void dispose() {
+    _cardNumberController.dispose();
+    _expiryController.dispose();
+    _cvvController.dispose();
+    _cardNameController.dispose();
+    _mobileController.dispose();
+    super.dispose();
   }
 
   void _handlePayment() async {
     setState(() => _isLoading = true);
-
     final paymentMethods = [
       'Credit/Debit Card',
       'JazzCash',
       'Easypaisa',
       'Cash on Visit',
     ];
-
     final result = await DatabaseService.saveBooking(
       serviceName: widget.serviceName,
       serviceProvider: widget.serviceProvider,
@@ -83,13 +87,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
       amount: widget.price,
       paymentMethod: paymentMethods[_selectedPayment],
     );
-
     setState(() => _isLoading = false);
-
     if (mounted) {
       if (result['success']) {
-        await NotificationService
-            .showBookingConfirmation(
+        await NotificationService.showBookingConfirmation(
           providerName: widget.serviceProvider,
           date: widget.date,
           time: widget.time,
@@ -127,7 +128,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF4CAF50).withOpacity(0.1),
+                  color:
+                  const Color(0xFF4CAF50).withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -155,7 +157,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              // Booking Details
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -165,19 +166,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 child: Column(
                   children: [
                     _buildDetailRow(
-                      'Doctor',
-                      'Dr. Ahmed Khan',
+                      'Provider',
+                      widget.serviceProvider,
                     ),
                     const Divider(height: 16),
-                    _buildDetailRow(
-                      'Date',
-                      'Today',
-                    ),
+                    _buildDetailRow('Date', widget.date),
                     const Divider(height: 16),
-                    _buildDetailRow(
-                      'Amount',
-                      'Rs. 500',
-                    ),
+                    _buildDetailRow('Time', widget.time),
+                    const Divider(height: 16),
+                    _buildDetailRow('Amount', widget.price),
                     const Divider(height: 16),
                     _buildDetailRow(
                       'Status',
@@ -252,48 +249,31 @@ class _PaymentScreenState extends State<PaymentScreen> {
         elevation: 0,
         title: const Text(
           'Payment',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        leading: GestureDetector(
-          onTap: () => Navigator.pop(context),
-          child: const Icon(Icons.arrow_back_ios_rounded),
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back_ios_rounded),
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 80),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Order Summary
             _buildOrderSummary(),
-
             const SizedBox(height: 24),
-
-            // Payment Methods
             _buildPaymentMethods(),
-
             const SizedBox(height: 24),
-
-            // Card Details
-            if (_selectedPayment == 0)
-              _buildCardDetails(),
-
-            // Mobile Number
+            if (_selectedPayment == 0) _buildCardDetails(),
             if (_selectedPayment == 1 ||
                 _selectedPayment == 2)
               _buildMobileDetails(),
-
             const SizedBox(height: 24),
-
-            // Pay Button
             _buildPayButton(),
-
             const SizedBox(height: 16),
-
-            // Security Badge
             _buildSecurityBadge(),
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -328,13 +308,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            _buildSummaryRow('Consultation Fee', 'Rs. 450'),
+            _buildSummaryRow(
+              widget.serviceProvider,
+              widget.price,
+            ),
             const SizedBox(height: 8),
-            _buildSummaryRow('Booking Fee', 'Rs. 50'),
+            _buildSummaryRow('Booking Fee', 'Rs. 0'),
             const Divider(height: 24),
             _buildSummaryRow(
               'Total Amount',
-              'Rs. 500',
+              widget.price,
               isTotal: true,
             ),
           ],
@@ -358,8 +341,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ? const Color(0xFF2D3748)
                 : const Color(0xFF718096),
             fontSize: isTotal ? 16 : 14,
-            fontWeight:
-            isTotal ? FontWeight.bold : FontWeight.normal,
+            fontWeight: isTotal
+                ? FontWeight.bold
+                : FontWeight.normal,
           ),
         ),
         Text(
@@ -409,12 +393,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         : const Color(0xFFE2E8F0),
                     width: _selectedPayment == index ? 2 : 1,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
-                      blurRadius: 8,
-                    ),
-                  ],
                 ),
                 child: Row(
                   children: [
@@ -422,20 +400,24 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: _paymentMethods[index]['color']
+                        color: (_paymentMethods[index]['color']
+                        as Color)
                             .withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
-                        _paymentMethods[index]['icon'],
-                        color: _paymentMethods[index]['color'],
+                        _paymentMethods[index]['icon']
+                        as IconData,
+                        color: _paymentMethods[index]['color']
+                        as Color,
                         size: 24,
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment:
+                        CrossAxisAlignment.start,
                         children: [
                           Text(
                             _paymentMethods[index]['name'],
@@ -460,7 +442,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       groupValue: _selectedPayment,
                       activeColor: const Color(0xFF6C63FF),
                       onChanged: (value) {
-                        setState(() => _selectedPayment = value!);
+                        setState(
+                              () => _selectedPayment = value!,
+                        );
                       },
                     ),
                   ],
@@ -489,8 +473,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          // Card Number
           TextFormField(
+            controller: _cardNumberController,
             keyboardType: TextInputType.number,
             maxLength: 16,
             decoration: InputDecoration(
@@ -525,15 +509,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          // Expiry & CVV
           Row(
             children: [
               Expanded(
                 child: TextFormField(
+                  controller: _expiryController,
                   keyboardType: TextInputType.number,
+                  maxLength: 5,
                   decoration: InputDecoration(
-                    labelText: 'Expiry Date',
+                    labelText: 'Expiry',
                     hintText: 'MM/YY',
+                    counterText: '',
                     prefixIcon: const Icon(
                       Icons.date_range_rounded,
                       color: Color(0xFF6C63FF),
@@ -565,6 +551,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               const SizedBox(width: 16),
               Expanded(
                 child: TextFormField(
+                  controller: _cvvController,
                   keyboardType: TextInputType.number,
                   maxLength: 3,
                   obscureText: true,
@@ -603,12 +590,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          // Card Holder Name
           TextFormField(
-            keyboardType: TextInputType.name,
+            controller: _cardNameController,
             decoration: InputDecoration(
               labelText: 'Card Holder Name',
-              hintText: 'Enter name on card',
+              hintText: 'Name on card',
               prefixIcon: const Icon(
                 Icons.person_outline_rounded,
                 color: Color(0xFF6C63FF),
@@ -660,10 +646,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ),
           const SizedBox(height: 16),
           TextFormField(
+            controller: _mobileController,
             keyboardType: TextInputType.phone,
+            maxLength: 11,
             decoration: InputDecoration(
               labelText: 'Mobile Number',
               hintText: '03XX-XXXXXXX',
+              counterText: '',
               prefixIcon: const Icon(
                 Icons.phone_android_rounded,
                 color: Color(0xFF6C63FF),
@@ -689,6 +678,35 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   width: 2,
                 ),
               ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFED8936).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.info_outline_rounded,
+                  color: Color(0xFFED8936),
+                  size: 16,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _selectedPayment == 1
+                        ? 'Enter your JazzCash registered number'
+                        : 'Enter your Easypaisa registered number',
+                    style: const TextStyle(
+                      color: Color(0xFFED8936),
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -718,9 +736,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
             color: Colors.white,
             strokeWidth: 2,
           )
-              : const Text(
-            'Pay Rs. 500',
-            style: TextStyle(
+              : Text(
+            'Pay ${widget.price}',
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -740,21 +758,25 @@ class _PaymentScreenState extends State<PaymentScreen> {
           color: const Color(0xFF4CAF50).withOpacity(0.1),
           borderRadius: BorderRadius.circular(16),
         ),
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.lock_rounded,
               color: Color(0xFF4CAF50),
               size: 18,
             ),
-            SizedBox(width: 8),
-            Text(
-              '256-bit SSL Encrypted & Secure Payment',
-              style: TextStyle(
-                color: Color(0xFF4CAF50),
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
+            const SizedBox(width: 8),
+            const Flexible(
+              child: Text(
+                '256-bit SSL Encrypted & Secure',
+                style: TextStyle(
+                  color: Color(0xFF4CAF50),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
             ),
           ],

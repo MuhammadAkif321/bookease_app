@@ -1,5 +1,6 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/auth_service.dart';
 import '../admin/admin_screen.dart';
 import '../home/home_screen.dart';
@@ -18,27 +19,59 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   bool _isLoading = false;
+  bool _rememberMe = false;
 
   @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _loadSavedCredentials();
+  }
+
+  Future<void> _loadSavedCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedEmail = prefs.getString('saved_email') ?? '';
+    final savedPassword =
+        prefs.getString('saved_password') ?? '';
+    final rememberMe = prefs.getBool('remember_me') ?? false;
+    if (rememberMe && savedEmail.isNotEmpty) {
+      setState(() {
+        _emailController.text = savedEmail;
+        _passwordController.text = savedPassword;
+        _rememberMe = rememberMe;
+      });
+    }
+  }
+
+  Future<void> _saveCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (_rememberMe) {
+      await prefs.setString(
+        'saved_email',
+        _emailController.text,
+      );
+      await prefs.setString(
+        'saved_password',
+        _passwordController.text,
+      );
+      await prefs.setBool('remember_me', true);
+    } else {
+      await prefs.remove('saved_email');
+      await prefs.remove('saved_password');
+      await prefs.setBool('remember_me', false);
+    }
   }
 
   void _handleLogin() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-
       final result = await AuthService.loginUser(
         email: _emailController.text,
         password: _passwordController.text,
       );
-
       setState(() => _isLoading = false);
-
       if (mounted) {
         if (result['success']) {
+          await _saveCredentials();
           if (_emailController.text.trim() ==
               'admin@bookease.com') {
             Navigator.pushReplacement(
@@ -105,9 +138,16 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -117,8 +157,6 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 40),
-
-                // Top Icon
                 FadeInDown(
                   duration: const Duration(milliseconds: 600),
                   child: Center(
@@ -145,24 +183,22 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 40),
-
-                // Welcome Text
                 FadeInLeft(
                   duration: const Duration(milliseconds: 600),
-                  child: const Text(
+                  child: Text(
                     'Welcome Back!',
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF2D3748),
+                      color: Theme.of(context)
+                          .textTheme
+                          .bodyLarge
+                          ?.color,
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 8),
-
                 FadeInLeft(
                   delay: const Duration(milliseconds: 200),
                   duration: const Duration(milliseconds: 600),
@@ -174,10 +210,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 40),
-
-                // Email Field
                 FadeInUp(
                   duration: const Duration(milliseconds: 600),
                   child: TextFormField(
@@ -205,10 +238,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
-                // Password Field
                 FadeInUp(
                   delay: const Duration(milliseconds: 200),
                   duration: const Duration(milliseconds: 600),
@@ -251,31 +281,52 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                   ),
                 ),
-
                 const SizedBox(height: 12),
-
-                // Forgot Password
                 FadeInUp(
-                  delay: const Duration(milliseconds: 300),
+                  delay: const Duration(milliseconds: 250),
                   duration: const Duration(milliseconds: 600),
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: _handleForgotPassword,
-                      child: const Text(
-                        'Forgot Password?',
-                        style: TextStyle(
-                          color: Color(0xFF6C63FF),
-                          fontWeight: FontWeight.w600,
+                  child: Row(
+                    mainAxisAlignment:
+                    MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: _rememberMe,
+                            activeColor: const Color(0xFF6C63FF),
+                            shape: RoundedRectangleBorder(
+                              borderRadius:
+                              BorderRadius.circular(4),
+                            ),
+                            onChanged: (value) {
+                              setState(
+                                    () => _rememberMe = value!,
+                              );
+                            },
+                          ),
+                          const Text(
+                            'Remember Me',
+                            style: TextStyle(
+                              color: Color(0xFF718096),
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                      TextButton(
+                        onPressed: _handleForgotPassword,
+                        child: const Text(
+                          'Forgot Password?',
+                          style: TextStyle(
+                            color: Color(0xFF6C63FF),
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
-
                 const SizedBox(height: 24),
-
-                // Login Button
                 FadeInUp(
                   delay: const Duration(milliseconds: 400),
                   duration: const Duration(milliseconds: 600),
@@ -283,12 +334,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: _isLoading ? null : _handleLogin,
+                      onPressed:
+                      _isLoading ? null : _handleLogin,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF6C63FF),
+                        backgroundColor:
+                        const Color(0xFF6C63FF),
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius:
+                          BorderRadius.circular(16),
                         ),
                         elevation: 0,
                       ),
@@ -307,10 +361,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 24),
-
-                // Divider
                 FadeInUp(
                   delay: const Duration(milliseconds: 500),
                   duration: const Duration(milliseconds: 600),
@@ -333,10 +384,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 24),
-
-                // Google Button
                 FadeInUp(
                   delay: const Duration(milliseconds: 600),
                   duration: const Duration(milliseconds: 600),
@@ -344,10 +392,27 @@ class _LoginScreenState extends State<LoginScreen> {
                     width: double.infinity,
                     height: 56,
                     child: OutlinedButton.icon(
-                      onPressed: () {},
+                      onPressed: () {
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(
+                          SnackBar(
+                            content: const Text(
+                              'Google Sign In coming soon! 🚀',
+                            ),
+                            backgroundColor:
+                            const Color(0xFF6C63FF),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius:
+                              BorderRadius.circular(12),
+                            ),
+                          ),
+                        );
+                      },
                       style: OutlinedButton.styleFrom(
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius:
+                          BorderRadius.circular(16),
                         ),
                         side: const BorderSide(
                           color: Color(0xFFE2E8F0),
@@ -369,10 +434,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 32),
-
-                // Register Link
                 FadeInUp(
                   delay: const Duration(milliseconds: 700),
                   duration: const Duration(milliseconds: 600),

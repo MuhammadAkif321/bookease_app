@@ -5,6 +5,11 @@ import 'firebase_options.dart';
 import 'services/notification_service.dart';
 import 'views/splash/splash_screen.dart';
 
+// Global theme notifier
+final themeNotifier = ValueNotifier<ThemeMode>(
+  ThemeMode.system,
+);
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -19,13 +24,18 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'BookEase',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
-      home: const SplashScreen(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeNotifier,
+      builder: (context, themeMode, child) {
+        return MaterialApp(
+          title: 'BookEase',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: themeMode,
+          home: const SplashScreen(),
+        );
+      },
     );
   }
 }

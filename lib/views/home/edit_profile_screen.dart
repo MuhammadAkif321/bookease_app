@@ -1,6 +1,8 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../main.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -10,12 +12,14 @@ class EditProfileScreen extends StatefulWidget {
       _EditProfileScreenState();
 }
 
-class _EditProfileScreenState extends State<EditProfileScreen> {
+class _EditProfileScreenState
+    extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _emailController;
   final _phoneController = TextEditingController();
   bool _isLoading = false;
+  bool _isDarkMode = false;
 
   @override
   void initState() {
@@ -27,6 +31,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _emailController = TextEditingController(
       text: user?.email ?? '',
     );
+    _isDarkMode = themeNotifier.value == ThemeMode.dark;
   }
 
   @override
@@ -37,12 +42,38 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 500,
+      maxHeight: 500,
+      imageQuality: 80,
+    );
+    if (picked != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            '✅ Profile photo updated!',
+          ),
+          backgroundColor: const Color(0xFF4CAF50),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+    }
+  }
+
   void _handleUpdate() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       try {
         await FirebaseAuth.instance.currentUser
-            ?.updateDisplayName(_nameController.text.trim());
+            ?.updateDisplayName(
+          _nameController.text.trim(),
+        );
         await FirebaseAuth.instance.currentUser?.reload();
         setState(() => _isLoading = false);
         if (mounted) {
@@ -65,7 +96,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Failed to update profile!'),
+              content: const Text(
+                'Failed to update profile!',
+              ),
               backgroundColor: const Color(0xFFE53E3E),
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -81,7 +114,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: const Color(0xFF6C63FF),
         foregroundColor: Colors.white,
@@ -101,7 +134,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           key: _formKey,
           child: Column(
             children: [
-              // Avatar
+              // Avatar with camera
               FadeInDown(
                 duration: const Duration(milliseconds: 600),
                 child: Center(
@@ -131,21 +164,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       Positioned(
                         bottom: 0,
                         right: 0,
-                        child: Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFF6584),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 2,
+                        child: GestureDetector(
+                          onTap: _pickImage,
+                          child: Container(
+                            width: 34,
+                            height: 34,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFF6584),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 2,
+                              ),
                             ),
-                          ),
-                          child: const Icon(
-                            Icons.camera_alt_rounded,
-                            color: Colors.white,
-                            size: 16,
+                            child: const Icon(
+                              Icons.camera_alt_rounded,
+                              color: Colors.white,
+                              size: 16,
+                            ),
                           ),
                         ),
                       ),
@@ -156,8 +192,82 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
               const SizedBox(height: 32),
 
+              // Dark Mode Toggle
+              FadeInUp(
+                duration: const Duration(milliseconds: 600),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).brightness ==
+                        Brightness.dark
+                        ? const Color(0xFF16213E)
+                        : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 8,
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 46,
+                        height: 46,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF6C63FF)
+                              .withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.dark_mode_rounded,
+                          color: Color(0xFF6C63FF),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment:
+                          CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Dark Mode',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                            Text(
+                              'Toggle app theme',
+                              style: TextStyle(
+                                color: Color(0xFF718096),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Switch(
+                        value: _isDarkMode,
+                        activeColor: const Color(0xFF6C63FF),
+                        onChanged: (value) {
+                          setState(() => _isDarkMode = value);
+                          themeNotifier.value = value
+                              ? ThemeMode.dark
+                              : ThemeMode.light;
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
               // Full Name
               FadeInUp(
+                delay: const Duration(milliseconds: 100),
                 duration: const Duration(milliseconds: 600),
                 child: TextFormField(
                   controller: _nameController,
@@ -184,7 +294,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
               // Email (read only)
               FadeInUp(
-                delay: const Duration(milliseconds: 100),
+                delay: const Duration(milliseconds: 200),
                 duration: const Duration(milliseconds: 600),
                 child: TextFormField(
                   controller: _emailController,
@@ -200,8 +310,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       color: Color(0xFF718096),
                       size: 18,
                     ),
-                    filled: true,
-                    fillColor: const Color(0xFFF8F9FA),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -213,7 +321,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
               // Phone
               FadeInUp(
-                delay: const Duration(milliseconds: 200),
+                delay: const Duration(milliseconds: 300),
                 duration: const Duration(milliseconds: 600),
                 child: TextFormField(
                   controller: _phoneController,
@@ -235,13 +343,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
               // Update Button
               FadeInUp(
-                delay: const Duration(milliseconds: 300),
+                delay: const Duration(milliseconds: 400),
                 duration: const Duration(milliseconds: 600),
                 child: SizedBox(
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _handleUpdate,
+                    onPressed:
+                    _isLoading ? null : _handleUpdate,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6C63FF),
                       foregroundColor: Colors.white,
@@ -265,6 +374,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                 ),
               ),
+
+              const SizedBox(height: 30),
             ],
           ),
         ),

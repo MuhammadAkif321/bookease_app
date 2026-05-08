@@ -443,9 +443,9 @@ class ProfileScreen extends StatelessWidget {
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 8),
-            Text('📧 support@bookease.com'),
+            Text('📧 akifkh2244@gmail.com'),
             SizedBox(height: 4),
-            Text('📱 0300-1234567'),
+            Text('📱 +923709544818'),
             SizedBox(height: 16),
             Text(
               'Common Questions:',
