@@ -1,4 +1,4 @@
-# 📅 BookEase — Appointment Booking App
+#  BookEase — Appointment Booking App
 
 
 
